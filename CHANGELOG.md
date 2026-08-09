@@ -22,3 +22,5 @@ Initial public preview.
 - Session tokens are stored as hashes and sent in HttpOnly, SameSite cookies; Secure cookies are configurable for HTTPS.
 - Browser acceptance tests allocate isolated ports instead of colliding with a running instance.
 - Added the missing tenant-scoped `GET /api/discussions/{id}` route exposed by clean-environment verification.
+- Static frontend routes reject encoded traversal and symlink escapes instead of serving files outside `frontend/dist`.
+- Expired sessions are pruned during authentication, and provider updates reject empty model lists.

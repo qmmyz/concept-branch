@@ -1,8 +1,10 @@
 import logging
 
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from concept_branch.app import create_app, selection_matches_source
+from concept_branch.app import _resolve_frontend_file, create_app, selection_matches_source
 from concept_branch.config import ConfigStore
 from concept_branch.db import Database
 from concept_branch.model import ProviderError
@@ -36,6 +38,29 @@ def make_client(tmp_path):
     store = ConfigStore(user_dir)
     store.save(__import__("concept_branch.config", fromlist=["ModelConfig"]).ModelConfig("http://mock/v1", "chat_completions", "mock-model", "test-key"))
     return client, fake, store
+
+
+def test_frontend_file_resolver_blocks_path_and_symlink_escape(tmp_path):
+    frontend_root = tmp_path / "dist"
+    assets = frontend_root / "assets"
+    assets.mkdir(parents=True)
+    safe_file = assets / "app.js"
+    safe_file.write_text("console.log('safe')")
+    outside_file = tmp_path / "private.txt"
+    outside_file.write_text("private")
+
+    assert _resolve_frontend_file(frontend_root, "assets/app.js") == safe_file
+    assert _resolve_frontend_file(frontend_root, "missing.js") is None
+    for path in ("../../private.txt", str(outside_file)):
+        with pytest.raises(HTTPException) as error:
+            _resolve_frontend_file(frontend_root, path)
+        assert error.value.status_code == 404
+
+    symlink = frontend_root / "outside-link.txt"
+    symlink.symlink_to(outside_file)
+    with pytest.raises(HTTPException) as error:
+        _resolve_frontend_file(frontend_root, symlink.name)
+    assert error.value.status_code == 404
 
 
 def test_crud_chat_expand_persistence_and_parent_is_unchanged(tmp_path):
@@ -234,6 +259,14 @@ def test_isolated_provider_registry_crud_switch_discovery_and_key_boundary(tmp_p
     remaining = client.get("/api/providers").json()
     assert [item["id"] for item in remaining["providers"]] == [provider["id"]]
     assert fake.calls[-1]["discovery"].model == "model-discovery"
+
+
+def test_provider_update_rejects_empty_model_list(tmp_path):
+    client, _, _ = make_client(tmp_path)
+    provider_id = client.get("/api/providers").json()["providers"][0]["id"]
+    response = client.patch(f"/api/providers/{provider_id}", json={"models": ["", "  "]})
+    assert response.status_code == 422
+    assert response.json()["detail"] == "模型列表不能为空"
 
 
 def test_frontend_catalog_keeps_classic_fallback(tmp_path):

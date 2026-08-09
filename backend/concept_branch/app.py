@@ -45,6 +45,16 @@ def secure_cookies_enabled() -> bool:
     return os.environ.get("CONCEPT_BRANCH_SECURE_COOKIES", "0").lower() in {"1", "true", "yes"}
 
 
+def _resolve_frontend_file(frontend_root: Path, path: str) -> Path | None:
+    root = frontend_root.resolve()
+    requested = (root / path).resolve()
+    try:
+        requested.relative_to(root)
+    except ValueError as error:
+        raise HTTPException(404, "页面不存在") from error
+    return requested if requested.is_file() else None
+
+
 def canonical_selection(value: str) -> str:
     """Compare rendered selections with Markdown source without trusting arbitrary text."""
     value = unicodedata.normalize("NFKC", value)
@@ -321,7 +331,11 @@ def create_app(
         changed = body.model_dump(exclude_unset=True)
         changed.pop("api_key", None)
         if body.base_url: changed["base_url"] = body.base_url.strip()
-        if body.models is not None: changed["models"] = sorted(set(body.models))
+        if body.models is not None:
+            models = sorted(set(model.strip() for model in body.models if model.strip()))
+            if not models:
+                raise HTTPException(422, "模型列表不能为空")
+            changed["models"] = models
         if body.api_key is not None and not key:
             raise HTTPException(422, "API key 不能为空")
         if changed.get("protocol") or changed.get("base_url"):
@@ -600,8 +614,8 @@ def create_app(
 
     @app.get("/ui/classic/{path:path}", include_in_schema=False)
     def classic_ui(path: str):
-        requested = frontend_dist / path
-        if path and requested.is_file():
+        requested = _resolve_frontend_file(frontend_dist, path)
+        if path and requested:
             return FileResponse(requested)
         return FileResponse(frontend_dist / "index.html")
 
@@ -614,8 +628,8 @@ def create_app(
         def spa(path: str):
             if path.startswith("api/"):
                 raise HTTPException(404, "接口不存在")
-            requested = frontend_dist / path
-            if path and requested.is_file():
+            requested = _resolve_frontend_file(frontend_dist, path)
+            if path and requested:
                 return FileResponse(requested)
             return FileResponse(frontend_dist / "index.html")
 

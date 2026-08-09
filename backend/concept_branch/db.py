@@ -135,10 +135,12 @@ class Database:
             db.execute("INSERT INTO sessions VALUES (?, ?, ?, ?)", (token_hash, user_id, stamp, expires_at))
 
     def get_session_user(self, token_hash: str) -> dict[str, Any] | None:
+        stamp = now()
         with self.connect() as db:
+            db.execute("DELETE FROM sessions WHERE expires_at <= ?", (stamp,))
             row = db.execute(
                 "SELECT users.* FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?",
-                (token_hash, now()),
+                (token_hash, stamp),
             ).fetchone()
         return dict(row) if row else None
 

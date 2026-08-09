@@ -119,6 +119,8 @@ def test_session_expiry_rejects_stale_token(tmp_path):
 
     assert client.get("/api/auth/me").status_code == 401
     assert client.get("/api/discussions").status_code == 401
+    with sqlite3.connect(str(tmp_path / "db.sqlite3")) as db:
+        assert db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 0
 
 
 def test_cookie_is_httponly_and_session_token_not_exposed(tmp_path):
