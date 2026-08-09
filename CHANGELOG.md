@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [0.1.0] - 2026-08-09
+
+Initial public preview.
+
+### Added
+
+- Tree-structured discussions created from selected source text.
+- Multi-user registration, login, sessions, and tenant-scoped storage.
+- Per-user OpenAI-compatible provider and model registry.
+- PDF, TXT, Markdown, CSV, JSON, and DOCX attachment context with inheritance and explicit bounds.
+- Discussion and message search, resizable panels, collapsible navigation, and light/dark modes.
+- Deterministic pytest, Vite build, and Playwright acceptance workflow with a local mock provider.
+- English and Chinese documentation, architecture notes, security policy, contribution guide, and CI.
+
+### Security and reliability
+
+- Provider keys remain outside SQLite and are written atomically with restrictive permissions.
+- Session tokens are stored as hashes and sent in HttpOnly, SameSite cookies; Secure cookies are configurable for HTTPS.
+- Browser acceptance tests allocate isolated ports instead of colliding with a running instance.
+- Added the missing tenant-scoped `GET /api/discussions/{id}` route exposed by clean-environment verification.
