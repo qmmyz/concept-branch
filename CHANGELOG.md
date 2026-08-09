@@ -26,3 +26,4 @@ Initial public preview.
 - Expired sessions are pruned during authentication, and provider updates reject empty model lists.
 - Browser responses include baseline CSP, framing, MIME, referrer, permissions, and HTTPS HSTS headers.
 - Public documentation now matches the verified test count and accurately scopes the reserved administrator role.
+- The CSP-compatible launcher uses an external script, and Playwright now exercises the FastAPI-served production build under the release response headers.

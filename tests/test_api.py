@@ -275,7 +275,13 @@ def test_frontend_catalog_keeps_classic_fallback(tmp_path):
     assert catalog[0]["id"] == "classic"
     assert isinstance(catalog[0]["available"], bool)
     assert len(catalog) == 1
-    assert client.get("/launcher").status_code == 200
+    launcher = client.get("/launcher")
+    assert launcher.status_code == 200
+    assert '<script src="/launcher.js" defer></script>' in launcher.text
+    assert "fetch('/api/frontends')" not in launcher.text
+    launcher_script = client.get("/launcher.js")
+    assert launcher_script.status_code == 200
+    assert launcher_script.headers["content-type"].startswith("text/javascript")
 
 
 def test_design_provider_cannot_be_selected_for_chat(tmp_path):

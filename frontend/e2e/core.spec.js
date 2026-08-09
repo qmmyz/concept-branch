@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 test('注册、登录、对话、选文展开、登出与再登录数据保持', async ({ page }) => {
-  await page.goto('/')
+  const initialResponse = await page.goto('/')
+  expect(initialResponse?.headers()['content-security-policy']).toContain("default-src 'self'")
   await expect(page.getByRole('heading', { name: 'Concept Branch' })).toBeVisible()
   await expect(page.getByRole('button', { name: '登录', exact: true })).toBeVisible()
 
@@ -9,6 +10,10 @@ test('注册、登录、对话、选文展开、登出与再登录数据保持',
   await page.getByLabel('用户名').fill('e2e-user')
   await page.getByLabel('密码').fill('e2e-pass-1234')
   await page.getByRole('button', { name: '注册', exact: true }).click()
+  await expect(page.getByText('e2e-user')).toBeVisible()
+  await page.goto('/launcher')
+  await expect(page.getByText('Classic', { exact: true })).toBeVisible()
+  await page.getByRole('link', { name: '打开' }).click()
   await expect(page.getByText('e2e-user')).toBeVisible()
   await expect(page.getByRole('button', { name: '切换界面风格' })).toHaveCount(0)
   await expect(page.locator('.style-picker, .style-menu')).toHaveCount(0)

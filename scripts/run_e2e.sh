@@ -4,12 +4,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d)"
 PIDS=()
-read -r BACKEND_PORT FRONTEND_PORT PROVIDER_PORT < <(
+read -r APP_PORT PROVIDER_PORT < <(
   "$ROOT/.venv/bin/python" - <<'PY'
 import socket
 ports = []
 sockets = []
-for _ in range(3):
+for _ in range(2):
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     sockets.append(sock)
@@ -19,11 +19,9 @@ for sock in sockets:
     sock.close()
 PY
 )
-BACKEND_PORT="${CONCEPT_BRANCH_E2E_BACKEND_PORT:-$BACKEND_PORT}"
-FRONTEND_PORT="${CONCEPT_BRANCH_E2E_FRONTEND_PORT:-$FRONTEND_PORT}"
+APP_PORT="${CONCEPT_BRANCH_E2E_APP_PORT:-${CONCEPT_BRANCH_E2E_BACKEND_PORT:-$APP_PORT}}"
 PROVIDER_PORT="${CONCEPT_BRANCH_E2E_PROVIDER_PORT:-$PROVIDER_PORT}"
-BACKEND_URL="http://127.0.0.1:${BACKEND_PORT}"
-FRONTEND_URL="http://127.0.0.1:${FRONTEND_PORT}"
+APP_URL="http://127.0.0.1:${APP_PORT}"
 PROVIDER_URL="http://127.0.0.1:${PROVIDER_PORT}"
 kill_tree() {
   local pid="$1" child
@@ -37,13 +35,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
+if [ ! -f "$ROOT/frontend/dist/index.html" ]; then
+  echo "Production frontend is missing; run npm --prefix frontend run build first" >&2
+  exit 1
+fi
+
 setsid env CONCEPT_BRANCH_MOCK_PROVIDER_PORT="$PROVIDER_PORT" \
   "$ROOT/.venv/bin/python" "$ROOT/scripts/mock_provider.py" & PIDS+=("$!")
 setsid env CONCEPT_BRANCH_DB="$TMP/e2e.sqlite3" CONCEPT_BRANCH_CONFIG_DIR="$TMP/config" \
-  CONCEPT_BRANCH_SERVE_FRONTEND=0 CONCEPT_BRANCH_CORS_ORIGINS="$FRONTEND_URL" PYTHONPATH="$ROOT/backend" \
-  "$ROOT/.venv/bin/uvicorn" concept_branch.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --log-level warning & PIDS+=("$!")
-setsid env CONCEPT_BRANCH_BACKEND_URL="$BACKEND_URL" \
-  sh -c "cd '$ROOT/frontend' && exec node node_modules/vite/bin/vite.js --host 127.0.0.1 --port '$FRONTEND_PORT' --strictPort" & PIDS+=("$!")
+  CONCEPT_BRANCH_SERVE_FRONTEND=1 CONCEPT_BRANCH_CORS_ORIGINS="$APP_URL" PYTHONPATH="$ROOT/backend" \
+  "$ROOT/.venv/bin/uvicorn" concept_branch.app:app --host 127.0.0.1 --port "$APP_PORT" --log-level warning & PIDS+=("$!")
 
 wait_for_url() {
   local url="$1"
@@ -68,9 +69,9 @@ if [ "$provider_ready" -ne 1 ]; then
   echo "Timed out waiting for mock provider at $PROVIDER_URL" >&2
   exit 1
 fi
-wait_for_url "$BACKEND_URL/api/health"
-wait_for_url "$FRONTEND_URL"
+wait_for_url "$APP_URL/api/health"
+wait_for_url "$APP_URL"
 
-CONCEPT_BRANCH_E2E_BASE_URL="$FRONTEND_URL" \
+CONCEPT_BRANCH_E2E_BASE_URL="$APP_URL" \
 CONCEPT_BRANCH_E2E_PROVIDER_URL="$PROVIDER_URL/v1" \
   npm --prefix "$ROOT/frontend" run test:e2e

@@ -179,7 +179,7 @@ def create_app(
     @app.middleware("http")
     async def add_security_headers(request: Request, call_next):
         response = await call_next(request)
-        response.headers.setdefault("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+        response.headers.setdefault("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
@@ -612,6 +612,7 @@ def create_app(
 
     frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
     launcher = Path(__file__).resolve().parents[2] / "frontends" / "launcher" / "index.html"
+    launcher_script = launcher.with_name("launcher.js")
     @app.get("/api/frontends")
     def list_frontends(user: dict[str, Any] = Depends(get_current_user)):
         return {"frontends": [
@@ -623,6 +624,12 @@ def create_app(
         if not launcher.exists():
             raise HTTPException(404, "前端 launcher 不存在")
         return FileResponse(launcher)
+
+    @app.get("/launcher.js", include_in_schema=False)
+    def frontend_launcher_script():
+        if not launcher_script.exists():
+            raise HTTPException(404, "前端 launcher 脚本不存在")
+        return FileResponse(launcher_script, media_type="text/javascript")
 
     @app.get("/ui/classic/{path:path}", include_in_schema=False)
     def classic_ui(path: str):

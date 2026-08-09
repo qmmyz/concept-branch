@@ -2,4 +2,4 @@
 <html lang="zh-CN"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concept Branch · 选择前端</title>
 <style>body{font-family:system-ui,sans-serif;background:#f5f7f2;color:#294536;max-width:720px;margin:12vh auto;padding:24px}h1{font-weight:500}#items{display:grid;gap:12px}.card{display:flex;justify-content:space-between;align-items:center;padding:18px;background:#fff;border:1px solid #d8e0d8;border-radius:12px}.card a{background:#315f4c;color:#fff;padding:9px 14px;border-radius:8px;text-decoration:none}.missing{opacity:.45}</style>
 <h1>选择 Concept Branch 前端</h1><p>每个前端是独立构建；classic 始终作为安全回退。</p><div id="items">加载中…</div>
-<script>fetch('/api/frontends').then(r=>r.json()).then(({frontends})=>{document.querySelector('#items').innerHTML=frontends.map(f=>`<div class="card ${f.available?'':'missing'}"><span><strong>${f.label}</strong><br><small>${f.available?'可用':'尚未生成'}</small></span>${f.available?`<a href="${f.url}">打开</a>`:'<span>—</span>'}</div>`).join('')})</script>
+<script src="/launcher.js" defer></script>
