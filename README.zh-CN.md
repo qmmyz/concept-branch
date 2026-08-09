@@ -44,7 +44,7 @@ npm --prefix frontend run build
 bash scripts/start_server.sh
 ```
 
-打开 <http://127.0.0.1:8421>。第一个注册账号会成为本机管理员，然后可在 Provider 设置中填写 OpenAI-compatible endpoint、模型名和 API key。
+打开 <http://127.0.0.1:8421>。第一个注册账号会标记为本机管理员，供后续角色功能使用；v0.1 暂无管理员专属权限。然后可在 Provider 设置中填写 OpenAI-compatible endpoint、模型名和 API key。
 
 默认运行数据位于：
 

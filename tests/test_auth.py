@@ -140,6 +140,19 @@ def test_secure_cookie_can_be_enabled_for_https(tmp_path, monkeypatch):
     client = make_client(tmp_path)
     response = client.post("/api/auth/register", json={"username": "alice", "password": "alice-pass-123"})
     assert "Secure" in response.headers.get("set-cookie", "")
+    assert response.headers["strict-transport-security"] == "max-age=31536000"
+
+
+def test_browser_security_headers_are_set(tmp_path):
+    client = make_client(tmp_path)
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert response.headers["permissions-policy"] == "camera=(), microphone=(), geolocation=()"
+    assert "default-src 'self'" in response.headers["content-security-policy"]
+    assert "strict-transport-security" not in response.headers
 
 
 def test_cors_origins_are_configurable(monkeypatch):

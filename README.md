@@ -48,7 +48,7 @@ npm --prefix frontend run build
 bash scripts/start_server.sh
 ```
 
-Open <http://127.0.0.1:8421>. The first registered account becomes the local administrator. Add an OpenAI-compatible endpoint, model name, and API key from the provider settings screen.
+Open <http://127.0.0.1:8421>. The first registered account is marked as the local administrator for future role-based features; v0.1 has no administrator-only controls. Add an OpenAI-compatible endpoint, model name, and API key from the provider settings screen.
 
 Runtime data defaults to:
 

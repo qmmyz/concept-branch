@@ -30,7 +30,7 @@ def _stamp() -> str:
 
 
 class ProviderStore:
-    """Concept Branch-owned provider registry; deliberately unrelated to Codex state."""
+    """Provider registry owned by Concept Branch and isolated from other tool state."""
 
     def __init__(self, root: Path | None = None):
         root_env = os.environ.get("CONCEPT_BRANCH_CONFIG_DIR")

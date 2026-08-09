@@ -24,3 +24,5 @@ Initial public preview.
 - Added the missing tenant-scoped `GET /api/discussions/{id}` route exposed by clean-environment verification.
 - Static frontend routes reject encoded traversal and symlink escapes instead of serving files outside `frontend/dist`.
 - Expired sessions are pruned during authentication, and provider updates reject empty model lists.
+- Browser responses include baseline CSP, framing, MIME, referrer, permissions, and HTTPS HSTS headers.
+- Public documentation now matches the verified test count and accurately scopes the reserved administrator role.

@@ -32,5 +32,6 @@ Provider URLs are intentionally user-configurable and cause the server to make o
 - Logs must not contain prompts, selections, uploaded content, provider URLs, keys, or session tokens.
 - Tests use recognizable synthetic credentials and a local mock provider only.
 - Static frontend routes resolve requested files and reject any target outside the packaged frontend root, including symlink escapes.
+- Application responses set a restrictive content security policy, deny framing, disable MIME sniffing, and limit referrer and browser-feature exposure. HSTS is enabled with secure cookies for HTTPS deployments.
 
 Run `bash scripts/verify.sh` before submitting a security-sensitive change.

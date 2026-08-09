@@ -153,7 +153,7 @@ function AuthScreen({ onAuthed }) {
     <div className="auth-screen">
       <form className="auth-card" onSubmit={submit}>
         <div className="auth-brand"><div className="brand-mark">CB</div><h1>Concept Branch</h1><p>登录后进入你的想法分支空间</p></div>
-        {mode === 'register' && <p className="hint">首个注册用户将成为管理员</p>}
+        {mode === 'register' && <p className="hint">首个注册用户会标记为管理员；v0.1 暂无管理员专属权限</p>}
         <label>用户名<input aria-label="用户名" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required /></label>
         <label>密码<input aria-label="密码" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required /></label>
         {status && <p className="status" role="status">{status}</p>}
