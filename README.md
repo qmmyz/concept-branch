@@ -40,6 +40,7 @@ Requirements:
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 22+
+- [ripgrep](https://github.com/BurntSushi/ripgrep) for the release verification script
 
 ```bash
 uv sync

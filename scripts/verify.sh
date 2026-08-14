@@ -2,6 +2,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+command -v rg >/dev/null || {
+  echo "ripgrep (rg) is required by scripts/verify.sh" >&2
+  exit 1
+}
 uv run pytest
 npm --prefix frontend run build
 bash scripts/run_e2e.sh

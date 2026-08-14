@@ -45,7 +45,10 @@ def _extract_docx(data: bytes) -> str:
             info = archive.getinfo("word/document.xml")
             if info.file_size > 25 * 1024 * 1024:
                 raise AttachmentError("DOCX 解压后的正文过大")
-            root = ElementTree.fromstring(archive.read(info))
+            document_xml = archive.read(info)
+            if re.search(br"<!\s*(?:DOCTYPE|ENTITY)\b", document_xml, re.IGNORECASE):
+                raise AttachmentError("DOCX 正文包含不允许的 XML 声明")
+            root = ElementTree.fromstring(document_xml)
     except (zipfile.BadZipFile, KeyError, ElementTree.ParseError) as exc:
         raise AttachmentError("DOCX 文件损坏或格式无效") from exc
     namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"

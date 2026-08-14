@@ -16,12 +16,13 @@ For any deployment beyond localhost:
 
 - use an HTTPS reverse proxy;
 - set `CONCEPT_BRANCH_SECURE_COOKIES=1`;
-- explicitly configure `CONCEPT_BRANCH_CORS_ORIGINS`;
+- explicitly configure `CONCEPT_BRANCH_CORS_ORIGINS` only for trusted browser origins; the default allowlist is empty;
+- enforce an upload body-size limit at the reverse proxy as well as the application's extracted-file limit;
 - restrict network access and file-system permissions;
 - back up the SQLite database and provider registry separately;
 - do not share one operating-system account with mutually untrusted administrators.
 
-The current release does not provide brute-force throttling, password recovery, external identity providers, CSRF tokens, multi-process database coordination, or an audited container deployment. SameSite cookies and JSON request bodies are the v0.1 cross-site request boundary; do not weaken those defaults. Registration reports an existing username with HTTP 409. Treat throttling, non-enumerating account flows, and dedicated CSRF protection as required design work before exposing the service to the public internet.
+The current release does not provide brute-force throttling, password recovery, external identity providers, CSRF tokens, multi-process database coordination, or an audited container deployment. SameSite cookies, an empty default CORS allowlist, and same-origin browser APIs are the v0.1 cross-site request boundary; do not weaken those defaults. Registration reports an existing username with HTTP 409. Treat throttling, non-enumerating account flows, dedicated CSRF protection, and an ingress request-body limit as required design work before exposing the service to the public internet.
 
 Provider URLs are intentionally user-configurable and cause the server to make outbound requests. On a shared or LAN deployment, only trusted users should be allowed to configure providers; otherwise those URLs can become an SSRF path to services reachable by the host.
 

@@ -156,5 +156,8 @@ def test_browser_security_headers_are_set(tmp_path):
 
 
 def test_cors_origins_are_configurable(monkeypatch):
+    monkeypatch.delenv("CONCEPT_BRANCH_CORS_ORIGINS", raising=False)
+    assert configured_cors_origins() == []
+
     monkeypatch.setenv("CONCEPT_BRANCH_CORS_ORIGINS", "https://one.example, https://two.example")
     assert configured_cors_origins() == ["https://one.example", "https://two.example"]

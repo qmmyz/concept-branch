@@ -19,7 +19,9 @@ class Database:
         configured = os.environ.get("CONCEPT_BRANCH_DB")
         self.path = Path(path or configured or Path.home() / ".local" / "share" / "concept-branch" / "concept-branch.sqlite3")
         self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self.path.parent.chmod(0o700)
         self.init_schema()
+        self.path.chmod(0o600)
 
     def connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path)

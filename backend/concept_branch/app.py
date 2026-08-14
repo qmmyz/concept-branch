@@ -34,10 +34,7 @@ logger = logging.getLogger("uvicorn.error.concept_branch.operations")
 
 
 def configured_cors_origins() -> list[str]:
-    configured = os.environ.get(
-        "CONCEPT_BRANCH_CORS_ORIGINS",
-        "http://127.0.0.1:5173,http://localhost:5173",
-    )
+    configured = os.environ.get("CONCEPT_BRANCH_CORS_ORIGINS", "")
     return [origin.strip() for origin in configured.split(",") if origin.strip()]
 
 
@@ -636,7 +633,10 @@ def create_app(
         requested = _resolve_frontend_file(frontend_dist, path)
         if path and requested:
             return FileResponse(requested)
-        return FileResponse(frontend_dist / "index.html")
+        index = frontend_dist / "index.html"
+        if not index.is_file():
+            raise HTTPException(404, "Classic 前端尚未构建")
+        return FileResponse(index)
 
     if frontend_dist.exists() and os.environ.get("CONCEPT_BRANCH_SERVE_FRONTEND", "1") == "1":
         assets = frontend_dist / "assets"

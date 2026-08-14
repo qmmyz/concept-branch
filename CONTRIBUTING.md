@@ -2,7 +2,7 @@
 
 ## Development setup
 
-Requirements are Python 3.11+, uv, Node.js 22+, and a Chromium browser available to Playwright.
+Requirements are Python 3.11+, uv, Node.js 22+, ripgrep (`rg`), and a Chromium browser available to Playwright.
 
 ```bash
 uv sync

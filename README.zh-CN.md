@@ -35,7 +35,7 @@ Concept Branch 是一个自托管的树状 AI 对话工作区。你可以从任�
 
 ## 快速开始
 
-环境要求：Python 3.11+、[uv](https://docs.astral.sh/uv/) 和 Node.js 22+。
+环境要求：Python 3.11+、[uv](https://docs.astral.sh/uv/)、Node.js 22+，以及完整验收脚本使用的 [ripgrep](https://github.com/BurntSushi/ripgrep)。
 
 ```bash
 uv sync

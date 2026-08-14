@@ -19,7 +19,7 @@ The production build is served by FastAPI, so browser and API traffic are same-o
 
 | Data | Storage | Boundary |
 |---|---|---|
-| Users and password hashes | SQLite | scrypt hash plus per-user salt |
+| Users and password hashes | SQLite | scrypt hash plus per-user salt; database file `0600` in a `0700` directory |
 | Sessions | SQLite and HttpOnly cookie | database stores SHA-256 token hashes only |
 | Discussions and messages | SQLite | every query is scoped by authenticated user ID |
 | Uploaded files | SQLite BLOB | owner ID and node lineage checked before access |
@@ -40,8 +40,8 @@ The backend validates that the selected text exists in the source message after 
 
 ## File-context pipeline
 
-1. Reject unsupported formats and files larger than 10 MB.
-2. Extract embedded text with a format-specific parser; scanned PDFs are not OCR'd.
+1. Reject unsupported formats and extracted file payloads larger than 10 MB; non-local deployments also need an ingress body limit at the reverse proxy.
+2. Extract embedded text with a format-specific parser; DOCX rejects DTD/entity declarations and scanned PDFs are not OCR'd.
 3. Bound stored extracted text to 50,000 characters per file.
 4. Resolve current-node and ancestor attachments for each request.
 5. Bound aggregate model context to 60,000 characters and expose truncation metadata.
@@ -57,7 +57,8 @@ The application supports OpenAI-compatible Chat Completions and Responses transp
 |---|---|
 | Authentication and cookie behavior | `tests/test_auth.py` |
 | Cross-user data and key isolation | `tests/test_isolation.py` |
-| File formats, bounds, inheritance, deletion | `tests/test_attachments.py` |
+| File formats and extraction/context bounds | `tests/test_attachments.py` |
+| Attachment inheritance and deletion | `tests/test_api.py` |
 | API state transitions and selection validation | `tests/test_api.py` |
 | Provider protocols and error handling | `tests/test_model.py`, `tests/test_config.py` |
 | Full user workflow | `frontend/e2e/core.spec.js` |

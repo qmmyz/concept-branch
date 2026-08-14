@@ -2,13 +2,13 @@
 
 Candidate: `0.1.0`
 
-Verification date: 2026-08-09
+Verification date: 2026-08-14
 
 ## Acceptance results
 
 | Check | Result |
 |---|---|
-| Python tests | 39 passed |
+| Python tests | 43 passed |
 | Frontend production build | passed |
 | Playwright browser workflow | 1 passed |
 | npm production dependency audit | 0 known vulnerabilities |
