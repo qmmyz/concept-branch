@@ -27,7 +27,7 @@ Long AI conversations often mix the main problem with useful side questions. Con
 - **Authentication:** scrypt password hashing with per-user salts; opaque session tokens are stored only as SHA-256 hashes.
 - **Tenant isolation:** every discussion, node, attachment, and provider lookup is scoped by authenticated user ID; cross-user lookups return `404`.
 - **Credential boundary:** provider keys are kept outside SQLite and written atomically to `0600` files inside `0700` directories.
-- **Bounded file handling:** 10 MB per file, 50,000 extracted characters per file, and 60,000 injected characters per model request.
+- **Bounded file handling:** 10 MB per file, PDF content streams capped at 4 MB each and 8 MB cumulatively, 50,000 extracted characters per file, and 60,000 injected characters per model request.
 - **Failure-safe UI:** requests expose sent, waiting, and error states; failed input is restored for retry.
 - **Reproducible verification:** pytest, Vite production build, and Playwright run against an isolated database and mock provider on dynamically allocated ports.
 

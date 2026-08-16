@@ -9,7 +9,7 @@ dependencies = [
   "defusedxml>=0.7.1,<1",
   "fastapi>=0.116,<1",
   "httpx>=0.28,<1",
-  "pypdf>=5,<7",
+  "pypdf>=6.15,<7",
   "python-multipart>=0.0.20,<1",
   "uvicorn[standard]>=0.35,<1",
 ]

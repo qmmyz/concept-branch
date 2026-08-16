@@ -229,6 +229,30 @@ def test_settings_never_echo_key_and_failed_test_does_not_overwrite(tmp_path):
     assert store.load().protocol == "responses"
 
 
+def test_legacy_settings_create_a_usable_provider_after_registry_is_empty(tmp_path):
+    client, fake, _ = make_client(tmp_path)
+    initial_provider = client.get("/api/providers").json()["providers"][0]
+    assert client.delete(f"/api/providers/{initial_provider['id']}").status_code == 204
+    assert client.get("/api/providers").json()["providers"] == []
+
+    saved = client.put("/api/settings", json={
+        "base_url": "http://legacy.example/v1",
+        "protocol": "responses",
+        "model": "legacy-model",
+        "api_key": "legacy-key",
+    })
+    assert saved.status_code == 200
+    providers = client.get("/api/providers").json()
+    assert len(providers["providers"]) == 1
+    assert providers["active"]["provider_id"] == providers["providers"][0]["id"]
+    assert providers["active"]["model"] == "legacy-model"
+
+    root_id = client.post("/api/discussions", json={"title": "legacy settings"}).json()["root_node"]["id"]
+    response = client.post(f"/api/nodes/{root_id}/messages", json={"content": "settings should work"})
+    assert response.status_code == 201
+    assert fake.calls[-1]["config"].model == "legacy-model"
+
+
 def test_isolated_provider_registry_crud_switch_discovery_and_key_boundary(tmp_path):
     client, fake, _ = make_client(tmp_path)
     initial = client.get("/api/providers").json()

@@ -35,3 +35,7 @@ Initial public preview.
 - Disabling, redesignating, deleting, or removing the selected model from an active Provider now clears the active selection instead of continuing to send chat content.
 - Server launchers disable request access logs so search terms and other query-string content are not written to logs.
 - The development test stack now requires a patched pytest release so the locked environment has no known dependency vulnerabilities.
+- PDF extraction enforces per-stream and cumulative decompression budgets before text extraction, and stops accumulating text at the stored-character limit.
+- Legacy settings writes now create or update a usable chat Provider without reviving providers that a user deleted or disabled.
+- Vite redacts query strings from backend-proxy error logs, including during development-server reload failures.
+- Malformed DOCX/JSON parser failures return attachment validation errors, and truncation metadata survives whitespace cleanup.

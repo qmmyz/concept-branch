@@ -87,7 +87,7 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.1,<1" },
     { name = "fastapi", specifier = ">=0.116,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "pypdf", specifier = ">=5,<7" },
+    { name = "pypdf", specifier = ">=6.15,<7" },
     { name = "python-multipart", specifier = ">=0.0.20,<1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35,<1" },
 ]

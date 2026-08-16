@@ -8,7 +8,7 @@ Verification date: 2026-08-16
 
 | Check | Result |
 |---|---|
-| Python tests | 48 passed |
+| Python tests | 55 passed |
 | Frontend production build | passed |
 | Playwright browser workflow | 1 passed |
 | npm production dependency audit | 0 known vulnerabilities |

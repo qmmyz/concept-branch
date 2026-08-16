@@ -1,11 +1,14 @@
 import os
-from pathlib import Path
+import shutil
 import socket
 import subprocess
 import sys
 import time
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,4 +62,52 @@ def test_module_server_does_not_log_search_query(tmp_path):
         process.terminate()
         output, _ = process.communicate(timeout=10)
 
+    assert secret_query not in output
+
+
+def test_vite_proxy_error_does_not_log_search_query():
+    vite = ROOT / "frontend/node_modules/vite/bin/vite.js"
+    if not vite.is_file() or shutil.which("node") is None:
+        pytest.skip("npm dependencies are not installed")
+
+    with socket.socket() as reservation:
+        reservation.bind(("127.0.0.1", 0))
+        frontend_port = reservation.getsockname()[1]
+    with socket.socket() as reservation:
+        reservation.bind(("127.0.0.1", 0))
+        unavailable_backend_port = reservation.getsockname()[1]
+
+    secret_query = "TOPSECRET_VITE_PROXY_QUERY"
+    env = {
+        **os.environ,
+        "CONCEPT_BRANCH_BACKEND_URL": f"http://127.0.0.1:{unavailable_backend_port}",
+    }
+    process = subprocess.Popen(
+        ["node", str(vite), "--host", "127.0.0.1", "--port", str(frontend_port), "--strictPort"],
+        cwd=ROOT / "frontend",
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    try:
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                urlopen(f"http://127.0.0.1:{frontend_port}/", timeout=1)
+                break
+            except URLError:
+                if process.poll() is not None or time.monotonic() >= deadline:
+                    raise AssertionError("Vite server did not become ready")
+                time.sleep(0.05)
+        try:
+            urlopen(f"http://127.0.0.1:{frontend_port}/api/search?q={secret_query}", timeout=2)
+        except HTTPError:
+            pass
+        time.sleep(0.2)
+    finally:
+        process.terminate()
+        output, _ = process.communicate(timeout=10)
+
+    assert "http proxy error: /api/search" in output
     assert secret_query not in output

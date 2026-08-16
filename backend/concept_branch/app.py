@@ -603,6 +603,28 @@ def create_app(
             raise HTTPException(422, "首次配置必须填写 API key")
         await model_reply([{"role": "user", "content": "只回复 OK"}], user["id"], candidate)
         config_store_for(user["id"]).save(candidate)
+        provider_store = providers_for(user["id"])
+        selected = provider_store.active()
+        if selected:
+            provider_id = selected[1]
+            provider_store.update(
+                provider_id,
+                base_url=candidate.base_url,
+                protocol=candidate.protocol,
+                models=[candidate.model],
+                enabled=True,
+                kind="chat",
+            )
+        else:
+            provider = provider_store.create(
+                "兼容设置",
+                candidate.base_url,
+                candidate.protocol,
+                [candidate.model],
+            )
+            provider_id = str(provider["id"])
+        provider_store.save_secret(provider_id, candidate.api_key)
+        provider_store.set_active(provider_id, candidate.model)
         return candidate.public()
 
     frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
