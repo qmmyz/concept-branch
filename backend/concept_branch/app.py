@@ -274,8 +274,6 @@ def create_app(
             selected = providers_for(user_id).active()
             if selected:
                 active = selected[0]
-            else:
-                active = config_store_for(user_id).load()
         if not active or not active.base_url or not active.model or not active.api_key:
             raise HTTPException(409, "请先在设置中配置并测试模型服务")
         started = time.perf_counter()

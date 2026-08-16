@@ -5,8 +5,9 @@ import json
 import re
 import zipfile
 from pathlib import Path
-from xml.etree import ElementTree
 
+from defusedxml import ElementTree
+from defusedxml.common import DefusedXmlException
 from pypdf import PdfReader
 
 
@@ -46,18 +47,28 @@ def _extract_docx(data: bytes) -> str:
             if info.file_size > 25 * 1024 * 1024:
                 raise AttachmentError("DOCX 解压后的正文过大")
             document_xml = archive.read(info)
-            if re.search(br"<!\s*(?:DOCTYPE|ENTITY)\b", document_xml, re.IGNORECASE):
-                raise AttachmentError("DOCX 正文包含不允许的 XML 声明")
-            root = ElementTree.fromstring(document_xml)
+            root = ElementTree.fromstring(
+                document_xml,
+                forbid_dtd=True,
+                forbid_entities=True,
+                forbid_external=True,
+            )
+    except DefusedXmlException as exc:
+        raise AttachmentError("DOCX 正文包含不允许的 XML 声明") from exc
     except (zipfile.BadZipFile, KeyError, ElementTree.ParseError) as exc:
         raise AttachmentError("DOCX 文件损坏或格式无效") from exc
     namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
     paragraphs: list[str] = []
+    remaining = MAX_EXTRACTED_CHARS + 1
     for paragraph in root.iter(f"{namespace}p"):
         text = "".join(node.text or "" for node in paragraph.iter(f"{namespace}t"))
         if text.strip():
-            paragraphs.append(text)
-    return "\n".join(paragraphs)
+            chunk = ("\n" if paragraphs else "") + text
+            paragraphs.append(chunk[:remaining])
+            remaining -= min(len(chunk), remaining)
+            if remaining == 0:
+                break
+    return "".join(paragraphs)
 
 
 def _extract_pdf(data: bytes) -> str:

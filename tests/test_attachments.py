@@ -49,6 +49,18 @@ def test_docx_rejects_entity_and_doctype_declarations():
         extract_attachment("material.docx", buffer.getvalue())
 
 
+def test_docx_rejects_utf16_entity_and_doctype_declarations():
+    buffer = io.BytesIO()
+    xml = '''<?xml version="1.0" encoding="UTF-16"?>
+    <!DOCTYPE w:document [<!ENTITY repeated "expanded">]>
+    <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+    <w:p><w:r><w:t>&repeated;</w:t></w:r></w:p></w:body></w:document>'''.encode("utf-16")
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("word/document.xml", xml)
+    with pytest.raises(AttachmentError, match="不允许的 XML 声明"):
+        extract_attachment("material.docx", buffer.getvalue())
+
+
 def test_scanned_or_empty_pdf_has_clear_error():
     buffer = io.BytesIO()
     writer = PdfWriter(); writer.add_blank_page(width=100, height=100); writer.write(buffer)

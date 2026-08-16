@@ -269,6 +269,54 @@ def test_provider_update_rejects_empty_model_list(tmp_path):
     assert response.json()["detail"] == "模型列表不能为空"
 
 
+def test_active_provider_is_cleared_when_it_becomes_invalid(tmp_path):
+    client, fake, _ = make_client(tmp_path)
+    provider = client.get("/api/providers").json()["providers"][0]
+    provider_id = provider["id"]
+    model = provider["models"][0]
+    root_id = client.post("/api/discussions", json={"title": "provider state"}).json()["root_node"]["id"]
+
+    for patch in (
+        {"enabled": False},
+        {"kind": "design"},
+        {"models": ["replacement-model"]},
+    ):
+        if patch != {"enabled": False}:
+            restore = {"enabled": True, "kind": "chat", "models": [model]}
+            assert client.patch(f"/api/providers/{provider_id}", json=restore).status_code == 200
+        assert client.put("/api/active-model", json={"provider_id": provider_id, "model": model}).status_code == 200
+        calls_before = len(fake.calls)
+        assert client.patch(f"/api/providers/{provider_id}", json=patch).status_code == 200
+        assert client.get("/api/active-model").json() == {
+            "provider_id": None,
+            "provider_name": None,
+            "model": None,
+        }
+        response = client.post(f"/api/nodes/{root_id}/messages", json={"content": "不得发送"})
+        assert response.status_code == 409
+        assert len(fake.calls) == calls_before
+
+
+def test_deleting_active_provider_does_not_select_another_implicitly(tmp_path):
+    client, _, _ = make_client(tmp_path)
+    old_provider = client.get("/api/providers").json()["providers"][0]
+    created = client.post("/api/providers", json={
+        "name": "second chat provider",
+        "base_url": "http://second.example/v1",
+        "protocol": "chat_completions",
+        "model": "second-model",
+        "api_key": "second-key",
+    }).json()["provider"]
+    assert client.get("/api/active-model").json()["provider_id"] == created["id"]
+    assert client.delete(f"/api/providers/{created['id']}").status_code == 204
+    assert client.get("/api/active-model").json() == {
+        "provider_id": None,
+        "provider_name": None,
+        "model": None,
+    }
+    assert [item["id"] for item in client.get("/api/providers").json()["providers"]] == [old_provider["id"]]
+
+
 def test_frontend_catalog_keeps_classic_fallback(tmp_path):
     client, _, _ = make_client(tmp_path)
     catalog = client.get("/api/frontends").json()["frontends"]

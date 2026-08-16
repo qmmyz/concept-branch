@@ -44,7 +44,7 @@ setsid env CONCEPT_BRANCH_MOCK_PROVIDER_PORT="$PROVIDER_PORT" \
   "$ROOT/.venv/bin/python" "$ROOT/scripts/mock_provider.py" & PIDS+=("$!")
 setsid env CONCEPT_BRANCH_DB="$TMP/e2e.sqlite3" CONCEPT_BRANCH_CONFIG_DIR="$TMP/config" \
   CONCEPT_BRANCH_SERVE_FRONTEND=1 CONCEPT_BRANCH_CORS_ORIGINS="$APP_URL" PYTHONPATH="$ROOT/backend" \
-  "$ROOT/.venv/bin/uvicorn" concept_branch.app:app --host 127.0.0.1 --port "$APP_PORT" --log-level warning & PIDS+=("$!")
+  "$ROOT/.venv/bin/uvicorn" concept_branch.app:app --host 127.0.0.1 --port "$APP_PORT" --log-level warning --no-access-log & PIDS+=("$!")
 
 wait_for_url() {
   local url="$1"

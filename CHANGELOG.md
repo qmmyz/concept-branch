@@ -31,3 +31,7 @@ Initial public preview.
 - Verification now fails when ripgrep is unavailable instead of silently skipping its secret-like-value scan.
 - Added attachment-bound, DOCX declaration, database-permission, and default-CORS regression coverage.
 - SQLite is restricted to `0600` inside a `0700` directory, and the Classic route returns `404` when its build is absent.
+- DOCX XML parsing now rejects DTD, entity, and external-reference declarations across encodings before extracting bounded text.
+- Disabling, redesignating, deleting, or removing the selected model from an active Provider now clears the active selection instead of continuing to send chat content.
+- Server launchers disable request access logs so search terms and other query-string content are not written to logs.
+- The development test stack now requires a patched pytest release so the locked environment has no known dependency vulnerabilities.

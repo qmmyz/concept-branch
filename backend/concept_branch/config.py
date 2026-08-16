@@ -99,6 +99,7 @@ class ProviderStore:
                     if value is not None and key in {"name", "base_url", "protocol", "models", "enabled", "kind"}:
                         provider[key] = value.rstrip("/") if key == "base_url" and isinstance(value, str) else value
                 provider["updated_at"] = _stamp()
+                self._reconcile_active(registry)
                 self._write(registry); return provider
         return None
 
@@ -107,9 +108,7 @@ class ProviderStore:
         kept = [p for p in providers if p.get("id") != provider_id]
         if len(kept) == len(providers): return False
         registry["providers"] = kept
-        if registry.get("active_provider_id") == provider_id:
-            registry["active_provider_id"] = kept[0]["id"] if kept else None
-            registry["active_model"] = kept[0].get("models", [None])[0] if kept else None
+        self._reconcile_active(registry)
         self._write(registry); self.delete_secret(provider_id); return True
 
     def set_active(self, provider_id: str, model: str) -> dict[str, object]:
@@ -120,14 +119,43 @@ class ProviderStore:
         return {"provider_id": provider_id, "model": model}
 
     def active(self) -> tuple[ModelConfig, str, str] | None:
-        registry = self._read(); provider_id = registry.get("active_provider_id"); model = registry.get("active_model")
-        provider = self.get_public(str(provider_id)) if provider_id else None
-        if not provider or not model: return None
-        return ModelConfig(str(provider["base_url"]), str(provider["protocol"]), str(model), self.get_secret(str(provider_id))), str(provider_id), str(model)
+        selection = self._active_selection(self._read())
+        if selection is None:
+            return None
+        provider, provider_id, model = selection
+        return ModelConfig(str(provider["base_url"]), str(provider["protocol"]), model, self.get_secret(provider_id)), provider_id, model
 
     def active_public(self) -> dict[str, object]:
-        registry = self._read(); provider = self.get_public(str(registry["active_provider_id"])) if registry.get("active_provider_id") else None
-        return {"provider_id": provider.get("id") if provider else None, "provider_name": provider.get("name") if provider else None, "model": registry.get("active_model") if provider else None}
+        selection = self._active_selection(self._read())
+        if selection is None:
+            return {"provider_id": None, "provider_name": None, "model": None}
+        provider, provider_id, model = selection
+        return {"provider_id": provider_id, "provider_name": provider.get("name"), "model": model}
+
+    @staticmethod
+    def _active_selection(registry: dict[str, object]) -> tuple[dict[str, object], str, str] | None:
+        provider_id = registry.get("active_provider_id")
+        model = registry.get("active_model")
+        if not provider_id or not isinstance(model, str) or not model:
+            return None
+        provider = next(
+            (item for item in registry.get("providers", []) if item.get("id") == provider_id),
+            None,
+        )
+        if (
+            not provider
+            or not provider.get("enabled")
+            or provider.get("kind", "chat") != "chat"
+            or model not in provider.get("models", [])
+        ):
+            return None
+        return provider, str(provider_id), model
+
+    @classmethod
+    def _reconcile_active(cls, registry: dict[str, object]) -> None:
+        if cls._active_selection(registry) is None:
+            registry["active_provider_id"] = None
+            registry["active_model"] = None
 
     @staticmethod
     def _atomic_json(path: Path, data: dict[str, object], mode: int) -> None:

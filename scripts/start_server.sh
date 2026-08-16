@@ -19,4 +19,4 @@ if [ "$HOST" != "127.0.0.1" ] && [ "$HOST" != "localhost" ]; then
 fi
 
 exec env PYTHONPATH=backend .venv/bin/uvicorn concept_branch.app:app \
-  --host "$HOST" --port "$PORT" --log-level info
+  --host "$HOST" --port "$PORT" --log-level info --no-access-log

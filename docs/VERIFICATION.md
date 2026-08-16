@@ -2,13 +2,13 @@
 
 Candidate: `0.1.0`
 
-Verification date: 2026-08-14
+Verification date: 2026-08-16
 
 ## Acceptance results
 
 | Check | Result |
 |---|---|
-| Python tests | 43 passed |
+| Python tests | 48 passed |
 | Frontend production build | passed |
 | Playwright browser workflow | 1 passed |
 | npm production dependency audit | 0 known vulnerabilities |
@@ -25,6 +25,8 @@ npm --prefix frontend ci
 npm --prefix frontend exec -- playwright install chromium
 bash scripts/verify.sh
 npm --prefix frontend audit --omit=dev
+uv run --with pip-audit pip-audit
+gitleaks git --log-opts='HEAD' --redact --no-banner .
 ```
 
 The acceptance workflow serves the production frontend build through FastAPI under the release CSP, and uses temporary SQLite and provider directories, a synthetic account, a synthetic API key, and a local mock provider. No external model service or real credential is required.
