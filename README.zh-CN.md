@@ -81,7 +81,7 @@ bash scripts/verify.sh
 
 ## 参与项目
 
-开发说明见 [CONTRIBUTING.md](CONTRIBUTING.md)。安全问题请按 [SECURITY.md](SECURITY.md) 私下报告，不要直接创建公开 issue。
+开发说明见 [CONTRIBUTING.md](CONTRIBUTING.md)。欢迎通过公开 issue 提交普通问题和改进建议；如发现潜在安全漏洞，请按照 [SECURITY.md](SECURITY.md) 使用 GitHub 私密漏洞报告，以便在公开前协调修复。
 
 ## 许可证
 

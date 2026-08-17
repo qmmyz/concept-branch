@@ -86,7 +86,7 @@ This release is a single-node application. It does not yet include password reco
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues should follow [SECURITY.md](SECURITY.md), not a public issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Public issues are welcome for regular bugs and improvement ideas. If you discover a potential security vulnerability, please use GitHub's private vulnerability reporting as described in [SECURITY.md](SECURITY.md), so a fix can be coordinated before disclosure.
 
 ## License
 
